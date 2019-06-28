@@ -29,22 +29,31 @@ public class FileUploader
 	
 	 private static AmazonS3 cosClient;
 	
-    public static void main( String[] args )
+    public static void main( String[] args ) throws InterruptedException, ExecutionException
     {
+    	if (args.length!=2)
+    	{
+    		System.out.println("Required Parameters:");
+    		System.out.println("1.-Bucket Name");
+    		System.out.println("2.-File Path");
+    		//System.exit(0);
+    	}
+    	
     	System.out.println("STARTING");
     	SDKGlobalConfiguration.IAM_ENDPOINT = COS_AUTH_ENDPOINT;
     	
         try
         {
         	cosClient=createClient(COS_API_KEY_ID, COS_SERVICE_CRN, COS_ENDPOINT, COS_BUCKET_LOCATION);
+        }catch(Exception ex){
+        	System.out.println(ex.toString());
+        }
         
         System.out.println("CLIENT CREATED");
         
     	uploadAspera("fxnbkt","/home/fnaranjo/main.cf");
     	
-        }catch(Exception ex){
-        	System.out.println(ex.toString());
-        }
+       
     }
     
     private static AmazonS3 createClient(String api_key, String service_instance_id, String endpoint_url, String location)
@@ -60,8 +69,9 @@ public class FileUploader
         return cos;
     }
     
-    private static void uploadAspera(String bucketName,String filePath) throws InterruptedException, ExecutionException
+    private static void uploadAspera(String bucketName,String filePath) throws InterruptedException, ExecutionException 
     {
+ 
     	System.out.println("Staring upload using Aspera");
     	File inputFile = new File(filePath);
     	AsperaConfig asperaConfig = new AsperaConfig()
@@ -72,6 +82,8 @@ public class FileUploader
     	
     	Future<AsperaTransaction> asperaTransactionFuture = asperaTransferMgr.upload(bucketName, inputFile, inputFile.getName());
     	AsperaTransaction asperaTransaction = asperaTransactionFuture.get();
+    	
+  
     
     }
 }
