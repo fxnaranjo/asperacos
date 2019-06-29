@@ -1,9 +1,7 @@
 package asperacos.asperacos;
 
 import java.io.File;
-import java.util.concurrent.ExecutionException;
 import java.util.concurrent.Future;
-
 import com.ibm.cloud.objectstorage.ClientConfiguration;
 import com.ibm.cloud.objectstorage.SDKGlobalConfiguration;
 import com.ibm.cloud.objectstorage.auth.AWSCredentials;
@@ -29,7 +27,7 @@ public class FileUploader
 	
 	 private static AmazonS3 cosClient;
 	
-    public static void main( String[] args ) throws InterruptedException, ExecutionException
+    public static void main( String[] args ) 
     {
     	if (args.length!=2)
     	{
@@ -46,12 +44,12 @@ public class FileUploader
         {
         	cosClient=createClient(COS_API_KEY_ID, COS_SERVICE_CRN, COS_ENDPOINT, COS_BUCKET_LOCATION);
         }catch(Exception ex){
-        	System.out.println(ex.toString());
+        	ex.printStackTrace();
         }
         
         System.out.println("CLIENT CREATED");
         
-    	uploadAspera("fxnbkt","/home/fnaranjo/main.cf");
+    	uploadAspera("fxnbkt","/home/fnaranjo/xyz.deb");
     	
        
     }
@@ -69,21 +67,35 @@ public class FileUploader
         return cos;
     }
     
-    private static void uploadAspera(String bucketName,String filePath) throws InterruptedException, ExecutionException 
-    {
+    private static void uploadAspera(String bucketName,String filePath) {
  
     	System.out.println("Staring upload using Aspera");
     	File inputFile = new File(filePath);
     	AsperaConfig asperaConfig = new AsperaConfig()
-    	    .withMultiSession(2)
+    	    .withMultiSession(1)
     	    .withMultiSessionThresholdMb(60);
 
     	AsperaTransferManager asperaTransferMgr = new AsperaTransferManagerBuilder(COS_API_KEY_ID,cosClient).withAsperaConfig(asperaConfig).build();
     	
-    	Future<AsperaTransaction> asperaTransactionFuture = asperaTransferMgr.upload(bucketName, inputFile, inputFile.getName());
-    	AsperaTransaction asperaTransaction = asperaTransactionFuture.get();
-    	
-  
+    		try {
+			Future<AsperaTransaction> asperaTransactionFuture = asperaTransferMgr.upload(bucketName, inputFile, inputFile.getName());
+			AsperaTransaction asperaTransaction = asperaTransactionFuture.get();
+			
+			asperaTransaction.waitForCompletion();
+			
+			boolean tarnsferEnd=true;
+			System.out.println(tarnsferEnd);
+			if (tarnsferEnd)
+			{
+				System.out.println("END");
+				Runtime.getRuntime().halt(0);
+			}
+    		}catch(Exception x){}
+    		finally {
+    			System.out.println("END");
+    			Runtime.getRuntime().halt(0);
+    		}
+		
     
     }
 }
